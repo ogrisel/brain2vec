@@ -12,8 +12,16 @@ def abs_diff(X):
     return s
 
 
-def make_models(input_dim, embedding_size=32, embedding_bias=False,
-                embedding_dropout=0):
+def multiplicative(X):
+    m = X[0]
+    for i in range(1, len(X)):
+        m *= X[i]
+    return m
+
+
+def make_linear_models(input_dim, embedding_size=32, embedding_bias=False,
+                       embedding_dropout=0):
+    """Linear Siamese Linear model on abs difference of embeddings"""
     input_shape = (input_dim,)
     input_x = Input(shape=input_shape)
     embedding = Dense(embedding_size, use_bias=embedding_bias)(input_x)
@@ -33,6 +41,34 @@ def make_models(input_dim, embedding_size=32, embedding_bias=False,
     return embedding_model, siamese_model
 
 
+def make_mlp_models(input_dim, embedding_size=32, embedding_bias=False,
+                    embedding_dropout=0.2, hidden_size=128,
+                    n_hidden=2, dropout=0.2):
+    input_shape = (input_dim,)
+    input_x = Input(shape=input_shape)
+    embedding = Dense(embedding_size, use_bias=embedding_bias)(input_x)
+    if embedding_dropout:
+        embedding = Dropout(embedding_dropout)(embedding)
+    embedding_model = Model(input_x, embedding)
+
+    input_a = Input(shape=input_shape)
+    input_b = Input(shape=input_shape)
+    embedding_a = embedding_model(input_a)
+    embedding_b = embedding_model(input_b)
+
+    diff = merge([embedding_a, embedding_b], mode=abs_diff,
+                 output_shape=(embedding_size,))
+    mul = merge([embedding_a, embedding_b], mode=multiplicative,
+                output_shape=(embedding_size,))
+    x = merge([embedding_a, embedding_b, diff, mul], mode='concat')
+    for i in range(n_hidden):
+        x = Dense(hidden_size, activation='relu')(x)
+        x = Dropout(dropout)(x)
+    output = Dense(1, activation='sigmoid')(x)
+    siamese_model = Model(input=[input_a, input_b], output=output)
+    return embedding_model, siamese_model
+
+
 if __name__ == "__main__":
     import numpy as np
     rng = np.random.RandomState(42)
@@ -42,25 +78,27 @@ if __name__ == "__main__":
     b = rng.randn(n_samples, n_features)
 
     embedding_size = 32
-    embedding_model, siamese_model = make_models(
-        n_features, embedding_size=embedding_size)
 
-    # Smoke tests: check the output shape of predictions of randomly
-    # initialized models
-    assert embedding_model.predict(a).shape == (n_samples, embedding_size)
-    assert siamese_model.predict([a, b]).shape == (n_samples, 1)
+    for model_factory in [make_linear_models, make_mlp_models]:
+        embedding_model, siamese_model = model_factory(
+            n_features, embedding_size=embedding_size)
 
-    # Check that we can fit balanced random labels
-    y = rng.randint(low=0, high=2, size=n_samples)
-    optimizer = optimizers.SGD(lr=0.001, momentum=0.9, nesterov=True)
-    # optimizer = optimizers.Adam(lr=0.00001)
-    siamese_model.compile(optimizer=optimizer, loss='binary_crossentropy',
-                          metrics=['accuracy'])
-    trace = siamese_model.fit([a, b], y, validation_split=0.2, epochs=30)
+        # Smoke tests: check the output shape of predictions of randomly
+        # initialized models
+        assert embedding_model.predict(a).shape == (n_samples, embedding_size)
+        assert siamese_model.predict([a, b]).shape == (n_samples, 1)
 
-    # The model should be able to overfit the training data
-    assert trace.history['loss'][-1] < 1e-4
-    assert trace.history['acc'][-1] >= 0.95
+        # Check that we can fit balanced random labels
+        y = rng.randint(low=0, high=2, size=n_samples)
+        optimizer = optimizers.SGD(lr=0.0001, momentum=0.9, nesterov=True)
+        # optimizer = optimizers.Adam(lr=0.0001)
+        siamese_model.compile(optimizer=optimizer, loss='binary_crossentropy',
+                              metrics=['accuracy'])
+        trace = siamese_model.fit([a, b], y, validation_split=0.2, epochs=30,
+                                  batch_size=16)
 
-    # The test accuracy should be random
-    assert 0.35 <= trace.history['val_acc'][-1] <= 0.65
+        # The model should be able to overfit the training data
+        assert trace.history['acc'][-1] >= 0.95
+
+        # The test accuracy should be random because the labels are random
+        assert 0.3 <= trace.history['val_acc'][-1] <= 0.7
