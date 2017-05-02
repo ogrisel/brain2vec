@@ -2,11 +2,14 @@ import numpy as np
 
 
 def _consecutive_index_generator(length, offset=0):
-    """Generate pair of ids of consecutive images. Offset is the distance between the images
+    """Generate pair of ids of consecutive images.
+
+    Offset is the distance between the images.
     """
     offset += 1
     for i in range(length - offset):
         yield (i, i + offset)
+
 
 def generate_learning_set(array, random_permutation=True, offset=0):
     """Generate learning set of consecutive scans
@@ -38,6 +41,7 @@ def generate_learning_set(array, random_permutation=True, offset=0):
 
     return learning_set
 
+
 if __name__ == '__main__':
     array = np.arange(5)
     res = generate_learning_set(array)
@@ -45,7 +49,7 @@ if __name__ == '__main__':
     for ia, ib, label in res:
         if label == 0:
             ia, ib = ib, ia
-    
+
     res = generate_learning_set(array, random_permutation=False, offset=1)
     assert(len(res) == 3)
     for ia, ib, label in res:
