@@ -21,7 +21,11 @@ def multiplicative(X):
 
 def make_linear_models(input_dim, embedding_size=32, embedding_bias=False,
                        embedding_dropout=0):
-    """Linear Siamese Linear model on abs difference of embeddings"""
+    """Build a linear Siamese model on abs difference of embeddings.
+
+    The output is a sigmoid activation (binary logistic regression) to predict
+    forward order or bacward order relationships between input a and b.
+    """
     input_shape = (input_dim,)
     input_x = Input(shape=input_shape)
     embedding = Dense(embedding_size, use_bias=embedding_bias)(input_x)
@@ -44,6 +48,18 @@ def make_linear_models(input_dim, embedding_size=32, embedding_bias=False,
 def make_mlp_models(input_dim, embedding_size=32, embedding_bias=False,
                     embedding_dropout=0.2, hidden_size=128,
                     n_hidden=2, dropout=0.2):
+    """Non-linear Siamese model on a pair of embeddings
+
+    Compares a pair of embeddings using a concatenation of the 2 embeddings,
+    their elementwise absolute difference and multiplicative
+    interactions.BaseException
+
+    The classifier a 2 hidden layers feed forward neural network with relu
+    activations.
+
+    The output is a sigmoid activation (binary logistic regression) to predict
+    forward order or bacward order relationships between input a and b.
+    """
     input_shape = (input_dim,)
     input_x = Input(shape=input_shape)
     embedding = Dense(embedding_size, use_bias=embedding_bias)(input_x)
