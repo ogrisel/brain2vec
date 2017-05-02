@@ -54,8 +54,9 @@ if __name__ == '__main__':
     assert(len(res[0]) == 4)
     for ia, ib, label in zip(*res):
         if label == 0:
-            ia, ib = ib, ia
-        assert(ia < ib)
+            assert(ia > ib)
+        else:
+            assert(ia < ib)
     res = generate_learning_set(array, random_permutation=False, offset=1)
     assert(len(res[0]) == 3)
     for ia, ib, label in zip(*res):
