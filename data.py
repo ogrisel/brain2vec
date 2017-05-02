@@ -41,11 +41,11 @@ def generate_learning_set(array, random_permutation=True, offset=0):
             label = np.random.randint(0, 2)
             if label == 0:
                 ia, ib = ib, ia
-        ia_list.append(ia)
-        ib_list.append(ib)
+        ia_list.append(array[ia])
+        ib_list.append(array[ib])
         label_list.append(label)
 
-    return ia_list, ib_list, label_list
+    return np.asarray(ia_list), np.asarray(ib_list), np.asarray(label_list)
 
 
 if __name__ == '__main__':
