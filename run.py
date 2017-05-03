@@ -1,3 +1,4 @@
+import os
 import data
 import model
 import numpy as np
@@ -10,7 +11,8 @@ data_root_path = './hcp_olivier'
 subject_id = '102816'
 
 # Localize data through file system relative indexing method
-path = os.path.join(data_root_path, subject_id, 'MNINonLinear', 'Results', 'rfMRI_REST1_LR', 'rfMRI_REST1_LR.npy')
+path = os.path.join(data_root_path, subject_id, 'MNINonLinear', 'Results',
+                    'rfMRI_REST1_LR', 'rfMRI_REST1_LR.npy')
 
 m = Memory(cachedir='/tmp')
 
@@ -25,7 +27,7 @@ def pca_transform(x, n_components=128, seed=0):
 # x = np.load(path)
 # print("extracting pca components:")
 # x = pca_transform(x)
-# a, b, y = data.generate_learning_set(x)
+# a, b, y = data.generate_learning_set(x, scans_to_average=2)
 
 
 def make_synthetic_data(n_samples, n_signal_features, n_noise_features,
@@ -44,7 +46,7 @@ a, b, y = data.generate_learning_set(x)
 embedding_model, siamese_model = model.make_linear_models(a.shape[1])
 
 # optimizer = optimizers.SGD(lr=0.001, momentum=0.9, nesterov=True)
-optimizer = optimizers.Adam(lr=0.0001)
+optimizer = optimizers.Adam(lr=0.01)
 
 siamese_model.compile(optimizer=optimizer, loss='binary_crossentropy',
                       metrics=['accuracy'])
