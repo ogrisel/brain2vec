@@ -10,13 +10,16 @@ def _consecutive_index_generator(length, offset=1):
         yield (i, i + offset)
 
 
-def generate_learning_set(array, random_permutation=True, offset=1, seed=0):
+def generate_learning_set(array, scans_to_average=1, random_permutation=True, offset=1, seed=0):
     """Generate learning set of consecutive scans
 
     Parameters
     ----------
     array: numpy array of shape n_scans x n_voxels
         Array of masked scans
+
+    scans_to_average: integer
+        Number of scan preceding the prediction scan to average
 
     random_permutation: boolean
         If True, consecutive scans are switched with a probability of .5
@@ -35,14 +38,16 @@ def generate_learning_set(array, random_permutation=True, offset=1, seed=0):
     ia_list = []
     ib_list = []
     label_list = []
-    for (ia, ib) in _consecutive_index_generator(n_samples, offset=offset):
+    for (ia, ib) in _consecutive_index_generator(n_samples, offset=offset + scans_to_average - 1):
         label = 1
+        scan_a = np.mean(array[ia:ia + scans_to_average], axis=0)
+        scan_b = array[ib]
         if random_permutation:
             label = rng.randint(0, 2)
             if label == 0:
-                ia, ib = ib, ia
-        ia_list.append(array[ia])
-        ib_list.append(array[ib])
+                scan_a, scan_b = scan_b, scan_a
+        ia_list.append(scan_a)
+        ib_list.append(scan_b)
         label_list.append(label)
 
     return np.asarray(ia_list), np.asarray(ib_list), np.asarray(label_list)
@@ -62,4 +67,11 @@ if __name__ == '__main__':
     for ia, ib, label in zip(*res):
         assert(label == 1)
         assert(ia < ib)
+
+    res = generate_learning_set(array, scans_to_average=2, random_permutation=False, offset=1)    
+    assert(len(res[0]) == 3)
+    for ia, ib, label in zip(*res):
+        assert(label == 1)
+        assert(ia < ib)
+
     print('Basic testing is OK')
