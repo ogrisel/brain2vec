@@ -1,18 +1,16 @@
 from keras.models import Model
 from keras.layers import Input, Dense, Dropout, merge
 from keras import optimizers
-import keras.backend as K
 
 
-def abs_diff(X):
+def merge_diff(X):
     s = X[0]
     for i in range(1, len(X)):
         s -= X[i]
-    s = K.abs(s)
     return s
 
 
-def multiplicative(X):
+def merge_mul(X):
     m = X[0]
     for i in range(1, len(X)):
         m *= X[i]
@@ -38,7 +36,7 @@ def make_linear_models(input_dim, embedding_size=32, embedding_bias=False,
     embedding_a = embedding_model(input_a)
     embedding_b = embedding_model(input_b)
 
-    diff = merge([embedding_a, embedding_b], mode=abs_diff,
+    diff = merge([embedding_a, embedding_b], mode=merge_diff,
                  output_shape=(embedding_size,))
     output = Dense(1, activation='sigmoid')(diff)
     siamese_model = Model(input=[input_a, input_b], output=output)
@@ -72,9 +70,9 @@ def make_mlp_models(input_dim, embedding_size=32, embedding_bias=False,
     embedding_a = embedding_model(input_a)
     embedding_b = embedding_model(input_b)
 
-    diff = merge([embedding_a, embedding_b], mode=abs_diff,
+    diff = merge([embedding_a, embedding_b], mode=merge_diff,
                  output_shape=(embedding_size,))
-    mul = merge([embedding_a, embedding_b], mode=multiplicative,
+    mul = merge([embedding_a, embedding_b], mode=merge_mul,
                 output_shape=(embedding_size,))
     x = merge([embedding_a, embedding_b, diff, mul], mode='concat')
     for i in range(n_hidden):
