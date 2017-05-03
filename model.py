@@ -1,5 +1,5 @@
 from keras.models import Model
-from keras.layers import Input, Dense, Dropout, merge
+from keras.layers import Input, Dense, Dropout, BatchNormalization, merge
 from keras import optimizers
 
 
@@ -38,6 +38,7 @@ def make_linear_models(input_dim, embedding_size=32, embedding_bias=False,
 
     diff = merge([embedding_a, embedding_b], mode=merge_diff,
                  output_shape=(embedding_size,))
+    diff = BatchNormalization()(diff)
     output = Dense(1, activation='sigmoid')(diff)
     siamese_model = Model(input=[input_a, input_b], output=output)
     return embedding_model, siamese_model
@@ -75,6 +76,7 @@ def make_mlp_models(input_dim, embedding_size=32, embedding_bias=False,
     mul = merge([embedding_a, embedding_b], mode=merge_mul,
                 output_shape=(embedding_size,))
     x = merge([embedding_a, embedding_b, diff, mul], mode='concat')
+    x = BatchNormalization()(x)
     for i in range(n_hidden):
         x = Dense(hidden_size, activation='relu')(x)
         x = Dropout(dropout)(x)
