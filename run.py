@@ -4,8 +4,11 @@ import numpy as np
 from keras import optimizers
 
 
+data_root_path = './hcp_olivier'
+subject_id = '102816'
+
 # Localize data through file system relative indexing method
-path = 'hcp_olivier/102816/MNINonLinear/Results/rfMRI_REST1_LR/rfMRI_REST1_LR.npy'
+path = os.path.join(data_root_path, subject_id, 'MNINonLinear', 'Results', 'rfMRI_REST1_LR', 'rfMRI_REST1_LR.npy')
 
 # Use data loading library to load data
 a, b, y = data.generate_learning_set(np.load(path))
