@@ -1,17 +1,16 @@
 import numpy as np
 
 
-def _consecutive_index_generator(length, offset=0):
+def _consecutive_index_generator(length, offset=1):
     """Generate pair of ids of consecutive images.
 
     Offset is the distance between the images.
     """
-    offset += 1
     for i in range(length - offset):
         yield (i, i + offset)
 
 
-def generate_learning_set(array, random_permutation=True, offset=0):
+def generate_learning_set(array, random_permutation=True, offset=1, seed=0):
     """Generate learning set of consecutive scans
 
     Parameters
@@ -28,17 +27,18 @@ def generate_learning_set(array, random_permutation=True, offset=0):
     Returns
     -------
     learning_set: (list of img, list of img, list of label)
-        Lists of consecutive indices and list of labels. If label is 0, indices are ordered decreasingly
+        Lists of consecutive indices and list of labels. If label is 0, indices
+        are ordered decreasingly
     """
-    np.random.seed()
-
+    rng = np.random.RandomState(seed)
+    n_samples = array.shape[0]
     ia_list = []
     ib_list = []
     label_list = []
-    for (ia, ib) in _consecutive_index_generator(array.shape[0], offset=offset):
+    for (ia, ib) in _consecutive_index_generator(n_samples, offset=offset):
         label = 1
         if random_permutation:
-            label = np.random.randint(0, 2)
+            label = rng.randint(0, 2)
             if label == 0:
                 ia, ib = ib, ia
         ia_list.append(array[ia])
@@ -57,7 +57,7 @@ if __name__ == '__main__':
             assert(ia > ib)
         else:
             assert(ia < ib)
-    res = generate_learning_set(array, random_permutation=False, offset=1)
+    res = generate_learning_set(array, random_permutation=False, offset=2)
     assert(len(res[0]) == 3)
     for ia, ib, label in zip(*res):
         assert(label == 1)
