@@ -161,10 +161,11 @@ if __name__ == '__main__':
         assert(label == 1)
         assert(ia < ib)
 
+    array = np.arange(15)
     scans, labels = generate_permutations(array, scans_to_permute=3)
     scans.append(labels)
     assert(len(scans) == 4)
-    assert(len(labels) == 2)
+    assert(len(labels) == 12)
     for ia, ib, ic, label in zip(*scans):
         grad = [ib - ia, ic - ib]
         assert(label == (grad == [1, 1]))
