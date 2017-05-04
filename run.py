@@ -19,7 +19,7 @@ models_folder = 'checkpoints'
 if not op.exists(models_folder):
     os.makedirs(models_folder)
 
-cpt = ModelCheckpoint(models_folder + "/model.{epoch:02d}-{val_acc:.2f}.h5",
+cpt = ModelCheckpoint(models_folder + "/model.{epoch:03d}-{val_acc:.2f}.h5",
                       monitor='val_acc', verbose=0,
                       save_best_only=False, save_weights_only=False,
                       mode='auto', period=1)
