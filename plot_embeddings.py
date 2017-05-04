@@ -18,11 +18,7 @@ path = os.path.join(data_root_path, subject_id, 'MNINonLinear', 'Results', 'rfMR
 masker = NiftiMasker(mask_img=os.path.join(data_root_path, 'mask_img.nii.gz'))
 masker.fit()
 
-# print(np.load(path).shape)
-# 
-# atlas = masker.inverse_transform(np.load(path)[:32])
-
-atlas = nibabel.load('diffs.nii.gz')
+atlas = masker.inverse_transform(np.load(path)[:32])
 
 # Plot 32 brains
 for i in range(32):
