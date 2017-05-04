@@ -40,7 +40,7 @@ def make_linear_models(input_dim, embedding_size=32, embedding_bias=False,
                  output_shape=(embedding_size,))
     diff = BatchNormalization()(diff)
     output = Dense(1, activation='sigmoid')(diff)
-    siamese_model = Model(input=[input_a, input_b], output=output)
+    siamese_model = Model([input_a, input_b], output)
     return embedding_model, siamese_model
 
 
@@ -81,13 +81,14 @@ def make_mlp_models(input_dim, embedding_size=32, embedding_bias=False,
         x = Dense(hidden_size, activation='relu')(x)
         x = Dropout(dropout)(x)
     output = Dense(1, activation='sigmoid')(x)
-    siamese_model = Model(input=[input_a, input_b], output=output)
+    siamese_model = Model([input_a, input_b], output)
     return embedding_model, siamese_model
 
 
 def make_permutation_models(input_dim, n_inputs=2, embedding_size=32,
                             embedding_bias=False, embedding_dropout=0.2,
                             hidden_size=128, n_hidden=2, dropout=0.2):
+    """Take n frames as input and predict if they are in the correct order"""
     input_shape = (input_dim,)
     input_x = Input(shape=input_shape)
     embedding = Dense(embedding_size, use_bias=embedding_bias)(input_x)
@@ -103,12 +104,13 @@ def make_permutation_models(input_dim, n_inputs=2, embedding_size=32,
         embedding_i = embedding_model(input_i)
         embeddings.append(embedding_i)
     x = merge(embeddings, mode='concat')
+    x = BatchNormalization()(x)
     for i in range(n_hidden):
-        x = BatchNormalization()(x)
-        x = Dense(hidden_size, activation='relu')
+        x = Dense(hidden_size, activation='relu')(x)
+        x = Dropout(dropout)(x)
     output = Dense(1, activation='sigmoid')(x)
-    siamese_model = Model(input=inputs, output=output)
-    return embedding, siamese_model
+    siamese_model = Model(inputs, output)
+    return embedding_model, siamese_model
 
 
 if __name__ == "__main__":
