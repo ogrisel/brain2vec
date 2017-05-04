@@ -111,7 +111,27 @@ def generate_permutations(array, scans_to_permute, balanced_wrt_ordered=True, ba
     return scans_list, labels_list
 
 
-def one_hot_permutation(array, scans_to_permute, balanced_wrt_ordered=True, seed=0):
+def one_hot_permutations(array, scans_to_permute, balanced_wrt_ordered=True, seed=0):
+    """Generate a learning set made of permutations with a one hot encoder label
+
+    Parameters
+    ----------
+    array: numpy array of shape n_scans x n_voxels
+        Array of masked scans
+
+    scans_to_permute: integer
+        Size of the sliding window where we do permutations
+
+    balanced_wrt_ordered: boolean
+        If True, ordered scans will have a probability of .5. Other 1/n_permutations
+
+    Returns
+    -------
+    learning_set: (list of list of img, matrix of labels, list of permutations)
+        Lists of scans corresponding to permutations.
+        The label matrix is of shape n_samples - scans_to_permute x scans_to_permute!
+        The permutations is the list of permutations corresponding to columns of label matrix
+    """
 
     assert(scans_to_permute > 1)  # Not pertinent without 1 or less scans
 
@@ -120,24 +140,37 @@ def one_hot_permutation(array, scans_to_permute, balanced_wrt_ordered=True, seed
     n_samples = array.shape[0]
 
     # Generate an index of all possible permutations
-    permutations = itertools.permutations(range(scans_to_permute))
+    permutations = list(itertools.permutations(range(scans_to_permute)))
+
+    # Find indices of forward and backward orders
+    forward = permutations.index(tuple(range(scans_to_permute)))
+    backward = permutations.index(tuple(range(scans_to_permute))[::1])
 
     # Prepare the label matrix
-    labels = np.zeros(n_samples - scans_to_permute - 1, len(permutations))
+    labels = np.zeros((n_samples - scans_to_permute, len(permutations)), dtype=np.int8)
 
-    ia_list = []
-    ib_list = []
+    scans_list = [list() for i in range(scans_to_permute)]
 
-    for (ia, ib) in _consecutive_index_generator(n_samples, offset=offset + scans_to_permute):
-        order = np.arange(scans_to_permute)
+    for i_permut, (ia, ib) in enumerate(_consecutive_index_generator(n_samples, offset=scans_to_permute)):
+        label_ind = rng.randint(0, len(permutations))
         if balanced_wrt_ordered:
             # Flip a coin, ordered or not
-            label = rng.randint(0, 2)
-            if label == 0:
-                rng.shuffle(order)
-        else:
-            pass
-    pass
+            coin = rng.randint(0, 2)
+            if coin == 0:
+                while label_ind == forward:
+                    label_ind = rng.randint(0, len(permutations))
+            else:
+                label_ind = forward
+
+        order = permutations[label_ind]
+
+        for i, ic in enumerate(order):
+            scans_list[i].append(array[ic + ia])
+        labels[i_permut][label_ind] = 1
+
+    for i, l in enumerate(scans_list):
+        scans_list[i] = np.asarray(l)
+    return scans_list, labels, permutations
 
 
 if __name__ == '__main__':
@@ -169,5 +202,10 @@ if __name__ == '__main__':
     for ia, ib, ic, label in zip(*scans):
         grad = [ib - ia, ic - ib]
         assert(label == (grad == [1, 1]))
+
+    array = np.arange(15)
+    scans, labels = one_hot_permutations(array, scans_to_permute=3)
+
+    print(scans, labels)
 
     print('Basic testing is OK')
