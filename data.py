@@ -206,6 +206,4 @@ if __name__ == '__main__':
     array = np.arange(15)
     scans, labels = one_hot_permutations(array, scans_to_permute=3)
 
-    print(scans, labels)
-
     print('Basic testing is OK')
