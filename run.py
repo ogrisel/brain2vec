@@ -1,8 +1,10 @@
+import os
 import os.path as op
 import data
 import model
 import numpy as np
 from keras import optimizers
+from keras.callbacks import ModelCheckpoint
 from sklearn.decomposition import PCA
 from joblib import Memory
 
@@ -12,6 +14,15 @@ data_root_path = './hcp_olivier'
 subject_ids = ['102816']
 session_ids = [1, 2]
 # session_ids = [1]
+models_folder = 'checkpoints'
+
+if not op.exists(models_folder):
+    os.makedirs(models_folder)
+
+cpt = ModelCheckpoint(models_folder + "/model.{epoch:02d}-{val_acc:.2f}.h5",
+                      monitor='val_acc', verbose=0,
+                      save_best_only=False, save_weights_only=False,
+                      mode='auto', period=1)
 
 
 def get_paths(data_root_path, subject_ids, session_ids=[1, 2]):
@@ -75,7 +86,8 @@ siamese_model.compile(optimizer=optimizer, loss='binary_crossentropy',
 
 
 trace = siamese_model.fit(scans, labels, validation_split=0.2, epochs=300,
-                          batch_size=32, shuffle=True)
+                          batch_size=32, shuffle=True,
+                          callbacks=[cpt])
 
 print(trace.history['acc'][-1])
 print(trace.history['val_acc'][-1])
