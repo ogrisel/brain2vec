@@ -55,7 +55,28 @@ def generate_learning_set(array, scans_to_average=1, random_permutation=True, of
 
 
 def generate_permutations(array, scans_to_permute, balanced_wrt_ordered=True, backward_is_ok=False, seed=0):
+    """Generate a learning set made of permutations of scans
 
+    Parameters
+    ----------
+    array: numpy array of shape n_scans x n_voxels
+        Array of masked scans
+
+    scans_to_permute: integer
+        Size of the sliding window where we do permutations
+
+    balanced_wrt_ordered: boolean
+        If True, ordered scans will have a probability of .5. Other 1/n_permutations
+
+    backward_is_ok: boolean
+        If True, backard sequences are considered ordered
+
+    Returns
+    -------
+    learning_set: (list of list of img, list of label)
+        Lists of scans corresponding to permutations.
+        Label is 1 if ordered, 0 if not. If backward_is_ok is True, label is also 1 if the permutation is backward.
+    """
     assert(scans_to_permute > 1)  # Not pertinent without 1 or less scans
 
     rng = np.random.RandomState(seed)
@@ -139,10 +160,11 @@ if __name__ == '__main__':
         assert(ia < ib)
 
     scans, labels = generate_permutations(array, scans_to_permute=3)
-    print(scans, labels)    
-    assert(len(res[0]) == 3)
-    for ia, ib, label in zip(*res):
-        assert(label == 1)
-        assert(ia < ib)
+    scans.append(labels)
+    assert(len(scans) == 4)
+    assert(len(labels) == 2)
+    for ia, ib, ic, label in zip(*scans):
+        grad = [ib - ia, ic - ib]
+        assert(label == (grad == [1, 1]))
 
     print('Basic testing is OK')
