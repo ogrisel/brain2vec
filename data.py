@@ -106,6 +106,8 @@ def generate_permutations(array, scans_to_permute, balanced_wrt_ordered=True, ba
             scans_list[i].append(array[ic + ia])
         labels_list.append(label)
 
+    for i, l in enumerate(scans_list):
+        scans_list[i] = np.asarray(l)
     return scans_list, labels_list
 
 
