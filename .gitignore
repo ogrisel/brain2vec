@@ -90,3 +90,6 @@ ENV/
 
 # model dumps
 *.h5
+
+# HCP excerpt
+hcp_olivier

@@ -6,8 +6,8 @@ from keras.models import load_model
 
 
 data_root_path = './hcp_olivier'
-subject_ids = ['103414']
-session_ids = [1]
+subject_ids = ['102816', '102311']
+session_ids = [2]  # session 1 for train, session 2 for test
 
 
 def get_paths(data_root_path, subject_ids, session_ids=[1, 2]):
