@@ -10,10 +10,10 @@ from joblib import Memory
 
 
 data_root_path = './hcp_olivier'
-# subject_ids = ['102816', '102311']
-subject_ids = ['102816']
+subject_ids = ['102816', '102311']
+#subject_ids = ['102816']
 session_ids = [1, 2]
-# session_ids = [1]
+#session_ids = [1]
 models_folder = 'checkpoints'
 
 if not op.exists(models_folder):

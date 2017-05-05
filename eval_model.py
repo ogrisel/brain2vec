@@ -1,3 +1,4 @@
+import sys
 import os.path as op
 import data
 import numpy as np
@@ -7,7 +8,6 @@ from keras.models import load_model
 data_root_path = './hcp_olivier'
 subject_ids = ['103414']
 session_ids = [1]
-models_folder = 'checkpoints'
 
 
 def get_paths(data_root_path, subject_ids, session_ids=[1, 2]):
@@ -33,7 +33,7 @@ del x
 input_dim = len(scans[0][0])
 
 print('loading model:')
-model = load_model('/tmp/model.036-0.82.h5')
+model = load_model(sys.argv[1])
 print('computing predictions on new data')
 predicted = model.predict(scans)
 print("accuracy: %0.3f" % np.mean((predicted > 0.5) == labels))
